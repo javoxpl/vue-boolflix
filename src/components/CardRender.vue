@@ -20,7 +20,13 @@
                 <li class="list-group-item">
                     <small>Attori</small>
                     <div>
-                        <span v-for="(actor, i) in actors" :key="actor.id">{{actor.name + (i < 4 ? ', ' : '') }}</span>
+                        <span v-for="(actor, i) in actors" :key="actor.id">{{actor.name + (i < actors.length - 1 ? ', ' : '') }}</span>
+                    </div>
+                </li>
+                <li class="list-group-item">
+                    <small>Generi</small>
+                    <div>
+                        <span v-for="(gen, i) in genres" :key="gen">{{gen + (i < genres.length - 1 ? ', ' : '') }}</span>
                     </div>
                 </li>
                 <li class="list-group-item">
@@ -43,6 +49,7 @@
 </template>
 
 <script>
+import { store } from '@/store';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import axios from 'axios';
 import LangFlag from 'vue-lang-code-flags';
@@ -52,7 +59,8 @@ export default {
     name: 'CardRender',
     data(){
         return {
-            actors: []
+            actors: [],
+            genres: []
         }
     },
     props: {
@@ -62,7 +70,9 @@ export default {
         voteAverage: Number,
         imagePath: String,
         overview: String,
-        filmId: Number
+        filmId: Number,
+        genre: Array,
+        isMovie: Boolean
     },
     components: {FontAwesomeIcon, LangFlag},
     methods: {
@@ -73,24 +83,40 @@ export default {
         onImgError(event){
             event.target.src = 'not-found.png'
         }
+        
+    },
 
-        // getActors(){
-        //     axios.get('https://api.themoviedb.org/3/movie/227975/credits?api_key=a3a172e52b1371fe2bd130acb05b1f4b')
-        //     .then((resp) => {
-        //         console.log(resp.data.cast)
-        //         this.actors = resp.data.cast.slice(0, 5)
-        //     })
-        // }
-
+    computed: {
         
     },
 
     mounted(){
         axios.get(`https://api.themoviedb.org/3/movie/${this.filmId}/credits?api_key=a3a172e52b1371fe2bd130acb05b1f4b`)
             .then((resp) => {
-                console.log(resp.data.cast)
                 this.actors = resp.data.cast.slice(0, 5)
             })
+
+        if (this.isMovie){
+            this.genre.forEach(gen => {
+                store.genresMovies.forEach(obj => {
+                    if (obj.id === gen){
+                        this.genres.push(obj.name)
+                    }
+                })
+            })
+        }
+
+        if (!this.isMovie){
+            this.genre.forEach(gen => {
+                store.genresTv.forEach(obj => {
+                    if (obj.id === gen){
+                        this.genres.push(obj.name)
+                    }
+                })
+            })
+        }
+        
+        
     }
 }
 
